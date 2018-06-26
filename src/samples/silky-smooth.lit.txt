@@ -1,0 +1,82 @@
+const computeBars = () => {
+  const barCount = Math.min(200, Math.floor(window.innerWidth / 15));
+  return {
+    barCount: barCount,
+    barWidth: 100 / barCount
+  };
+};
+
+const sineWaveStyle = styled(`
+.animated-sin-wave {
+  position: relative;
+  height: 150px;
+  width: 100%;
+  overflow: hidden;
+
+  > .bar {
+    position: absolute;
+    height: 100%;
+    border-radius: 50%;
+    max-width:10px;
+  }
+}
+
+.animated-sin-wave-description {
+  width:100%;
+  text-align:center;
+  font-size:0.8em;
+  color:#747678;
+  padding: 2em
+}`);
+
+const SineWave = component((appState, props, comp) => {
+  function onResize() {
+    comp.state(computeBars());
+  }
+
+  comp.state(() => ({
+    ...computeBars(),
+    active: false,
+    count: 0,
+    step: 0.5,
+    onMount() {
+      window.addEventListener("resize", onResize);
+    },
+    onUnmount() {
+      window.removeEventListener("resize", onResize);
+    }
+  }));
+}).view((props, comp) => {
+
+
+  const { count, step, barWidth, barCount } = comp.state();
+  const waves = [];
+  requestAnimationFrame(() => comp.state({ count: count + step }));
+  for (let c = count, i = 0; i < barCount; i++) {
+    let translateY = Math.sin(c / 10 + i / 5) * 100 * 0.5;
+    let hue = ((360 / barCount) * i - c) % 360;
+    let color = `hsl(${hue},95%,55%)`;
+    let rotation = (c + i) % 360;
+    let barX = barWidth * i;
+    waves[i] = H`
+      <div class="bar" style="
+        width: ${barWidth}%;
+        left: ${barX}%;
+        transform: scale(0.8,.5) translateY(${translateY}%) rotate(${rotation}deg);
+        background-color: ${color};
+      "></div>`;
+  }
+
+  const handleClick = () => comp.state({ step: step * -1 });
+  return H`
+    <div class=${sineWaveStyle} onclick=${handleClick}>
+      <div class=animated-sin-wave>${waves}</div>
+        <p class=animated-sin-wave-description>
+          The above animation is ${barCount}. <code>&lt;div&gt;</code> tags.
+          No SVG, no CSS transitions/animations.
+          It's all powered by hyperHTML which update each wave style every frame.
+        </p>
+    </div>`;
+});
+
+render(SineWave, "#root");

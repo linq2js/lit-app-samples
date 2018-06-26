@@ -1,0 +1,126 @@
+import { H, render, component, styled } from "lit-app";
+import litSource from './list-of-heroes.lit.txt';
+import angularSource from './list-of-heroes.angular.txt';
+
+export default {
+  run() {
+    const HEROES = [
+      { id: 11, name: "Mr. Nice" },
+      { id: 12, name: "Narco" },
+      { id: 13, name: "Bombasto" },
+      { id: 14, name: "Celeritas" },
+      { id: 15, name: "Magneta" },
+      { id: 16, name: "RubberMan" },
+      { id: 17, name: "Dynama" },
+      { id: 18, name: "Dr IQ" },
+      { id: 19, name: "Magma" },
+      { id: 20, name: "Tornado" }
+    ];
+
+    const appStyle = styled(`
+    .selected {
+      background-color: #CFD8DC !important;
+      color: white;
+    }
+    .heroes {
+      margin: 0 0 2em 0;
+      list-style-type: none;
+      padding: 0;
+      width: 15em;
+    }
+    .heroes li {
+      cursor: pointer;
+      position: relative;
+      left: 0;
+      background-color: #EEE;
+      margin: .5em;
+      padding: 0;
+      height: 1.6em;
+      border-radius: 4px;
+    }
+    .heroes li.selected:hover {
+      background-color: #BBD8DC !important;
+      color: white;
+    }
+    .heroes li:hover {
+      color: #607D8B;
+      background-color: #DDD;
+      left: .1em;
+    }
+    .heroes .text {
+      position: relative;
+      top: -3px;
+    }
+    .heroes .num {
+      display: inline-block;
+      font-size: small;
+      color: white;
+      padding: 5px 0.7em 0 0.7em;
+      background-color: #607D8B;
+      line-height: 1em;
+      position: relative;
+      left: -1px;
+      height: 2em;
+      margin-right: .8em;
+      border-radius: 4px 0 0 4px;
+    }`);
+
+    const App = component((appState, props, comp) => {
+      comp.state(() => ({
+        title: "Tour of Heroes",
+        heroes: HEROES,
+        selectedHero: undefined
+      }));
+    }).view((props, comp) => {
+      const { title, heroes, selectedHero } = comp.state();
+
+      function selectHero(hero) {
+        comp.state({ selectedHero: hero });
+      }
+
+      function handleChange(e) {
+        selectedHero.name = e.target.value;
+        comp.state(true);
+      }
+
+      const selectedHeroTemplate = !selectedHero
+        ? ""
+        : H`
+          <div>
+            <h2>${selectedHero.name} details!</h2>
+            <div><label>id: </label>${selectedHero.id}</div>
+            <div>
+              <label>name: </label>
+              <input
+                class="form-control"
+                value=${selectedHero.name}
+                oninput=${handleChange}
+                placeholder="name">
+            </div>
+          </div>`;
+
+      return H`
+        <div class=${appStyle}>
+          <h1>${title}</h1>
+          <h2>My Heroes</h2>
+          <ul class=heroes>
+            ${heroes.map(
+              hero => H`
+                <li
+                  class=${hero === selectedHero ? "selected" : ""}
+                  onclick=${() => selectHero(hero)}>
+                  <span class="num">${hero.id}</span> ${hero.name}
+                </li>`
+            )}
+          </ul>
+          ${selectedHeroTemplate}
+        </div>
+      `;
+    });
+
+    render(App, "#root");
+  },
+  lit: fetch(litSource).then(x => x.text()),
+  lang: "angular",
+  other: fetch(angularSource).then(x => x.text())
+};
